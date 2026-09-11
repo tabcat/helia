@@ -118,7 +118,7 @@ export namespace IPNSPublishMetadata {
             }
             case 3: {
               yield {
-                field: `${prefix}.upkeep`,
+                field: `${prefix}upkeep`,
                 value: Upkeep.codec().decode(reader)
               }
               break
@@ -154,7 +154,7 @@ export namespace IPNSPublishMetadata {
   }
 
   export interface IPNSPublishMetadataUpkeepFieldEvent {
-    field: '$.upkeep'
+    field: '.upkeep'
     value: Upkeep
   }
 
