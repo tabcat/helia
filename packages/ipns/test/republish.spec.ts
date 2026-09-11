@@ -862,7 +862,8 @@ describe('republisher', () => {
         const key = await result.keychain.generateKey('test-key')
         const routingKey = multihashToIPNSRoutingKey(key.publicKey.toMultihash())
 
-        await expect(name.republish(multihashFromIPNSRoutingKey(routingKey))).to.be.rejectedWith('No local record found to republish')
+        await expect(name.republish(multihashFromIPNSRoutingKey(routingKey))).to.eventually.be.rejected
+          .with.property('name', 'NotFoundError')
       })
 
       it('should not throw when the network router puts fail', async () => {
