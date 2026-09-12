@@ -279,14 +279,13 @@ export class IPNSRepublisher {
       }
     }
 
-    const marshaledRecord = IPNSEntry.encode(localRecord)
     const metadata = {
       upkeep: Upkeep[options.upkeep ?? 'rebroadcast']
     }
 
     // a publish that fails on every router does not throw; use onProgress to see
     // which routers worked and watch the logs
-    await this.#publishToRouters(routingKey, marshaledRecord, {
+    await this.#publishToRouters(routingKey, record, {
       ...options,
       overwrite: true,
       metadata
