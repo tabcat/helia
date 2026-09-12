@@ -252,11 +252,17 @@ export class IPNSRepublisher {
     // read the record we hold for this key directly, it was validated when it
     // was imported or published, and reading it through resolve() would recurse
     // and rewrite the local store
-    if (!(await this.localStore.has(routingKey, options))) {
+    let record: Uint8Array<ArrayBuffer>
+
+    try {
+      ({ record } = await this.localStore.get(routingKey, options))
+    } catch (err: any) {
+      if (err.name !== 'NotFoundError') {
+        throw err
+      }
+
       throw new NotFoundError('No local record found to republish - import it first')
     }
-
-    const { record } = await this.localStore.get(routingKey, options)
 
     // re-validate: a record that was valid when stored can have expired since
     const localRecord = await ipnsValidator(routingKey, record, this.keychain, options)
@@ -301,13 +307,19 @@ export class IPNSRepublisher {
     await ipnsValidator(routingKey, marshaledRecord, this.keychain, options)
 
     // do not downgrade a record we already hold
-    if (await this.localStore.has(routingKey, options)) {
+    try {
       const { record: existingBytes } = await this.localStore.get(routingKey, options)
       const existing = IPNSEntry.decode(existingBytes)
 
       // if the record we already have wins the selector, the incoming one is obsolete
       if (ipnsSelector(routingKey, [entry, existing]) !== 0) {
         throw new RecordObsoleteError('A newer record is already stored for this key', existing)
+      }
+    } catch (err: any) {
+      // holding no record for this key is the normal case, everything else
+      // (the RecordObsoleteError above included) is a real failure
+      if (err.name !== 'NotFoundError') {
+        throw err
       }
     }
 
